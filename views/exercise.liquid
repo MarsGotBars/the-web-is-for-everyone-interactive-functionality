@@ -1,24 +1,14 @@
 {% render './partials/head.liquid'
   , theme: foundTheme
-  , id: id %}
+  , id: id
+  , type: type %}
 <main>
   <img src="https://fdnd-agency.directus.app/assets/{{ image }}" alt="">
   <p>titel van de opdracht:</p>
   <h1 class="xxl">{{ title }}</h1>
   {{ description }}
-  <dialog open>
-    <header>
-      <p class="xl">Toegevoegd aan
-        <span>drops</span>
-      </p>
-    </header>
-    <form action="" method="dialog">
-      <input
-        type="text"
-        name=""
-        id="">
-      <button type="submit">Plaats bericht</button>
-    </form>
-  </dialog>
+  {% if type == "schrijf" %}
+    {% render './partials/dialog/comment-dialog.liquid' %}
+  {% endif %}
 </main>
 {% render './partials/footer.liquid' %}

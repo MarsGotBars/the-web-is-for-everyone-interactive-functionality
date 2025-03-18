@@ -93,7 +93,8 @@ app.get("/:theme/:pageId", async function (request, response) {
   if (!exercise) {
     return response.status(404).render("err.liquid");
   }
-  const { title, description, image } = exercise;
+  const { title, description, image, type } = exercise;
+  const customType = type == null ? "schrijf" : type;
   const { foundtheme, id } = foundData;
   response.render(`exercise.liquid`, {
     foundtheme,
@@ -101,6 +102,7 @@ app.get("/:theme/:pageId", async function (request, response) {
     description,
     id,
     image,
+    type: customType,
   });
 });
 
