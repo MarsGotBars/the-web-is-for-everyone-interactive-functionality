@@ -1,0 +1,26 @@
+/* MARK: Exercise dialog
+ */
+dialog {
+  opacity: 0;
+  --top-offset: 25vh;
+  border: none;
+  background: var(--default-bg);
+  padding: 1rem 1.5rem;
+  border-radius: 1rem 1rem 0 0;
+  position: fixed;
+  top: var(--top-offset);
+  height: calc(100vh - var(--top-offset));
+  width: 100%;
+  /* nodig aangezien de default ingesteld staaat als max-width: calc(100% - 2em - 6px); */
+  max-width: 100vw;
+  transition: opacity 0.3s ease-in-out;
+  &[open] {
+    opacity: 1;
+  }
+}
+
+/* standaard backdrop, voor het geval ik hier ooit iets mee wil doen */
+/* dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+} */
+/* Exercise dialog end */
