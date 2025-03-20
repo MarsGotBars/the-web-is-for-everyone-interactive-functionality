@@ -176,7 +176,7 @@ app.get("/:theme/:pageId/comment", async function (request, response) {
 app.post("/:theme/:pageId/drops", async function (request, response) {
   const { theme, pageId } = request.params;
   const { person, message, anonymous } = request.body;
-  
+  const errorRedirect = `/${theme}/${pageId}/comment`;
   // Get the exercise ID
   const foundData = taskData.find((data) => data.theme === theme);
   const exercise = exerciseData.find(
@@ -186,10 +186,13 @@ app.post("/:theme/:pageId/drops", async function (request, response) {
   if (!exercise) {
     return response.status(404).render("err.liquid");
   }
-  
+  if (message.length < 1) {
+    createError('Je bericht mag niet leeg zijn. Schrijf iets om te kunnen delen.', errorRedirect);
+    return response.redirect(303, errorRedirect);
+  }
   try {
     const response = await fetch(
-      "https://fdnd-agency.directus.app/items/dropandheal_messages",
+      "https://fdnd-agsency.directus.app/items/dropandheal_messages",
       {
         method: "POST",
         body: JSON.stringify({
@@ -211,8 +214,6 @@ app.post("/:theme/:pageId/drops", async function (request, response) {
 
     response.redirect(303, `/${theme}/${pageId}/drops`);
   } catch (error) {
-
-    const errorRedirect = `/${theme}/${pageId}/comment`;
     createError('Er is een fout opgetreden bij het versturen van je bericht. Probeer het nogmaals.', errorRedirect);
     return response.redirect(errorRedirect);
   }

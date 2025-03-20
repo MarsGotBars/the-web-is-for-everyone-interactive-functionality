@@ -45,6 +45,9 @@ dialog {
       justify-content: center;
       gap: 0.5rem;
     }
+    input{
+      color:#363636;
+    }
   }
   button {
     background: unset;
