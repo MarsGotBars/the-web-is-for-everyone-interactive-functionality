@@ -1,23 +1,35 @@
-{% if link != "" %}
-  <a href="{{ link }}" class="regular-btn {{ classes }}">
+{% if link != null %}
+  <a
+    href="{{ link }}"
+    {% if strip %}
+    class="{{ classes }}"
+    {% else %}
+    class="regular-btn {{ classes }}"
+    {% endif %}>
     {% if classes contains "ghost" and saveIcon == true %}
       <img
         src="/assets/icons/save.svg"
         alt="save icon"
         class="saveIcon">
     {% endif %}
-    <span>{{ text | default: 'Start oefening' }}</span>
+    {{ text | default: 'Start oefening' }}
   </a>
 {% else %}
-  <button class="regular-btn {{ classes }}" type="{{type | default: "button"}}">
+  <button
+    {% if strip %}
+    class="{{ classes }}"
+    {% else %}
+    class="regular-btn {{ classes }}"
+    {% endif %}
+    {% if type %}
+    type="{{type}}"
+    {% endif %}>
     {% if classes contains "ghost" and saveIcon == true %}
       <img
         src="/assets/icons/save.svg"
         alt="save icon"
         class="saveIcon">
     {% endif %}
-    <span>
-      {{ text | default: 'Start oefening' }}
-    </span>
+    {{ text | default: 'Start oefening' }}
   </button>
 {% endif %}
