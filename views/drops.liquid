@@ -1,0 +1,6 @@
+{% render './partials/head.liquid' %}
+{% for drop in drops %}
+  {% render "./partials/card/drop-card.liquid"
+    , drop: drop %}
+{% endfor %}
+{% render './partials/footer.liquid' %}

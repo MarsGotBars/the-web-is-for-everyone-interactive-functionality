@@ -1,14 +1,24 @@
+{% assign taskLink = "/" | append: foundTheme %}
+{% assign partialLink = taskLink | append: "/" | append: pageId %}
+{% assign dropsLink = partialLink | append: "/drops" %}
+{% assign commentLink = partialLink | append: "/comment" %}
 {% render './partials/head.liquid'
-  , theme: foundTheme
+  , themeColor: foundTheme
   , id: id
-  , type: type %}
+  , open: open %}
 <main>
-  <img src="https://fdnd-agency.directus.app/assets/{{ image }}" alt="">
+  <img
+    src="https://fdnd-agency.directus.app/assets/{{ image }}"
+    alt=""
+    loading="eager">
   <p>titel van de opdracht:</p>
   <h1 class="xxl">{{ title }}</h1>
   {{ description }}
-  {% if type == "schrijf" %}
-    {% render './partials/dialog/comment-dialog.liquid' %}
-  {% endif %}
+  {% render './partials/dialog/comment-dialog.liquid'
+    , link: dropsLink
+    , taskLink: taskLink %}
+  {% render './partials/btn/regular-btn.liquid'
+    , text: "Klaar"
+    , link: commentLink %}
 </main>
 {% render './partials/footer.liquid' %}
