@@ -20,6 +20,9 @@
         name="message"
         required>
     </label>
+    {% if error %}
+      <p class="error">{{ error }}</p>
+    {% endif %}
     <label>
       <input
         type="checkbox"

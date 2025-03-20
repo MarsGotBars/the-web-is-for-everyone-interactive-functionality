@@ -18,6 +18,7 @@ body{
     --rgba-off-black: 29, 29, 29;
     --gray: #A6A6A6;
     --rgba-gray: 166, 166, 166;
+    --error: #FF7979;
 
     /* colors */
     --blue: #64AAC7;

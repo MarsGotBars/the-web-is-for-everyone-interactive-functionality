@@ -149,6 +149,10 @@ li {
 .text-center{
   text-align: center;
 }
+
+.error{
+  color: var(--error);
+}
 /* util classes end  */
 
 span{

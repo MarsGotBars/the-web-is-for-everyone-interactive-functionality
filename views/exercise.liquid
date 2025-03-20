@@ -16,7 +16,8 @@
   {{ description }}
   {% render './partials/dialog/comment-dialog.liquid'
     , link: dropsLink
-    , taskLink: taskLink %}
+    , taskLink: taskLink 
+    , error: error %}
   {% render './partials/btn/regular-btn.liquid'
     , text: "Klaar"
     , link: commentLink %}

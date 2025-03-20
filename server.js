@@ -33,6 +33,12 @@ const fetchExerciseDrops = async (givenExercise) => {
   // Refresh de data voor de check
   return messageListJson;
 };
+const temporaryErrors = new Map();
+const createError = (error, path) => {
+  const errorKey = `${path}`;
+  temporaryErrors.set(errorKey, error);
+};
+
 (async () => {
   try {
     await fetchThemedExercise();
@@ -42,6 +48,19 @@ const fetchExerciseDrops = async (givenExercise) => {
   }
 })();
 const app = express();
+
+// Middleware om errors te genereren
+app.use((req, res, next) => {
+  // Pad om te vergelijken
+  const errorKey = `${req.path}`;
+  // Als er op dit pad een error is, voeg die toe aan de response locals
+  if (temporaryErrors.has(errorKey)) {
+    res.locals.error = temporaryErrors.get(errorKey);
+    // Verwijder de error nadat deze is gebruikt, zodat temporaryErrors leeg is
+    temporaryErrors.delete(errorKey);
+  }
+  next();
+});
 
 app.use(express.static("public"));
 
@@ -134,7 +153,9 @@ app.get("/:theme/:pageId/comment", async function (request, response) {
   const { title, description, image, type } = exercise;
   const { theme: foundTheme, id } = foundData;
   const open = true;
-  response.render(`exercise.liquid`, {
+  
+  // alle props die we willen meegeven aan de template
+  const renderData = {
     foundTheme,
     title,
     description,
@@ -142,13 +163,19 @@ app.get("/:theme/:pageId/comment", async function (request, response) {
     image,
     pageId,
     open,
-  });
+  };
+  
+  // Als res.locals.error bestaat, gebruik die (komt van middleware)
+  if (response.locals.error) {
+    renderData.error = response.locals.error;
+  }
+  
+  response.render(`exercise.liquid`, renderData);
 });
 
 app.post("/:theme/:pageId/drops", async function (request, response) {
   const { theme, pageId } = request.params;
   const { person, message, anonymous } = request.body;
-  console.log(message, person, anonymous);
   
   // Get the exercise ID
   const foundData = taskData.find((data) => data.theme === theme);
@@ -161,7 +188,7 @@ app.post("/:theme/:pageId/drops", async function (request, response) {
   }
   
   try {
-    await fetch(
+    const response = await fetch(
       "https://fdnd-agency.directus.app/items/dropandheal_messages",
       {
         method: "POST",
@@ -169,16 +196,25 @@ app.post("/:theme/:pageId/drops", async function (request, response) {
           exercise: exercise.id,
           text: message,
           from: anonymous ? "anoniem" : person,
+
         }),
         headers: {
           "Content-Type": "application/json;charset=UTF-8",
         },
       }
     );
+    
+    // Controleer of de response OK is (status 200-299)
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
     response.redirect(303, `/${theme}/${pageId}/drops`);
   } catch (error) {
-    console.error("Error posting message:", error);
-    response.status(500).render("err.liquid");
+
+    const errorRedirect = `/${theme}/${pageId}/comment`;
+    createError('Er is een fout opgetreden bij het versturen van je bericht. Probeer het nogmaals.', errorRedirect);
+    return response.redirect(errorRedirect);
   }
 });
 
@@ -194,8 +230,6 @@ app.get("/:theme/:pageId/drops", async function (request, response) {
   }
   // Voer de fetch uit wanneer we de pagina bezoeken, deze staat hier met de aanname dat er vaak comments geplaatst worden
   const drops = await fetchExerciseDrops(exercise.id);
-  console.log(exercise.id);
-  console.log(drops);
 
   response.render("drops.liquid", {
     drops,
