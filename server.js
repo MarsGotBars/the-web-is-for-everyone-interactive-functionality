@@ -2,6 +2,9 @@ import express from "express";
 import { Liquid } from "liquidjs";
 import 'dotenv/config'
 
+// Init de app
+const app = express();
+
 let taskData = [];
 let exerciseData = [];
 const fetchThemedTask = async () => {
@@ -64,8 +67,6 @@ const createError = (error, path) => {
     console.log(err, "no connection");
   }
 })();
-
-const app = express();
 
 // Middleware om errors te genereren
 app.use((req, res, next) => {
