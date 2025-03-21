@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/fdnd-task/server-side-rendering#readme",
   "dependencies": {
+    "dotenv": "^16.4.7",
     "express": "^5.0.1",
     "liquidjs": "^10.21.0"
   },
