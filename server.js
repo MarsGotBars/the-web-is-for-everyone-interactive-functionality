@@ -1,5 +1,6 @@
 import express from "express";
 import { Liquid } from "liquidjs";
+import 'dotenv/config'
 
 let taskData = [];
 let exerciseData = [];
@@ -33,6 +34,22 @@ const fetchExerciseDrops = async (givenExercise) => {
   // Refresh de data voor de check
   return messageListJson;
 };
+
+const findData = (theme, pageId) => {
+  const foundData = taskData.find((data) => data.theme === theme);
+
+  if (pageId === null) {
+    console.log("no pageId found");
+
+    return { foundData };
+  }
+  // - 1 omdat we door een array lopend die start op 0
+  const exercise = exerciseData.find(
+    (exercise) => exercise.id === foundData.exercise[pageId - 1]
+  );
+  return { exercise, foundData };
+};
+
 const temporaryErrors = new Map();
 const createError = (error, path) => {
   const errorKey = `${path}`;
@@ -47,6 +64,7 @@ const createError = (error, path) => {
     console.log(err, "no connection");
   }
 })();
+
 const app = express();
 
 // Middleware om errors te genereren
@@ -86,7 +104,7 @@ app.get("/:theme", async function (request, response) {
   const requestedTheme = request.params.theme;
 
   // Zoek taskData dmv de gevraagde :theme
-  const foundData = taskData.find((data) => data.theme === requestedTheme);
+  const { foundData } = findData(requestedTheme);
 
   if (!foundData) {
     return response.status(404).render("err.liquid");
@@ -95,15 +113,8 @@ app.get("/:theme", async function (request, response) {
   // Destructureer om props makkelijk door te
   const { pathName, theme, title, id, exercise: exerciseList } = foundData;
 
-  const exerciseInfo = exerciseList.map((exercise) => {
+  const exercises = exerciseList.map((exercise) => {
     return exerciseData.find((e) => e.id === exercise);
-  });
-  const exercises = exerciseInfo.map((exercise) => {
-    return {
-      ...exercise,
-      // absoluut pad, altijd handig -Krijn
-      pathName: `/${pathName}/${exercise.id}`,
-    };
   });
 
   // respond met de gevraagde pagina & het behorende thema
@@ -118,11 +129,10 @@ app.get("/:theme", async function (request, response) {
 
 app.get("/:theme/:pageId", async function (request, response) {
   const { theme, pageId } = request.params;
-  const foundData = taskData.find((data) => data.theme === theme);
-  // - 1 omdat we door een array lopend die start op 0
-  const exercise = exerciseData.find(
-    (exercise) => exercise.id === foundData.exercise[pageId - 1]
-  );
+  console.log("chosen path", request.url);
+
+  const { foundData, exercise } = findData(theme, pageId);
+
   if (!exercise) {
     return response.status(404).render("err.liquid");
   }
@@ -142,18 +152,16 @@ app.get("/:theme/:pageId", async function (request, response) {
 
 app.get("/:theme/:pageId/comment", async function (request, response) {
   const { theme, pageId } = request.params;
-  const foundData = taskData.find((data) => data.theme === theme);
-  // - 1 omdat we door een array lopend die start op 0
-  const exercise = exerciseData.find(
-    (exercise) => exercise.id === foundData.exercise[pageId - 1]
-  );
+
+  const { foundData, exercise } = findData(theme, pageId);
+
   if (!exercise) {
     return response.status(404).render("err.liquid");
   }
   const { title, description, image, type } = exercise;
   const { theme: foundTheme, id } = foundData;
   const open = true;
-  
+
   // alle props die we willen meegeven aan de template
   const renderData = {
     foundTheme,
@@ -164,67 +172,81 @@ app.get("/:theme/:pageId/comment", async function (request, response) {
     pageId,
     open,
   };
-  
+
   // Als res.locals.error bestaat, gebruik die (komt van middleware)
   if (response.locals.error) {
     renderData.error = response.locals.error;
   }
-  
+
   response.render(`exercise.liquid`, renderData);
 });
 
 app.post("/:theme/:pageId/drops", async function (request, response) {
   const { theme, pageId } = request.params;
   const { person, message, anonymous } = request.body;
+
   const errorRedirect = `/${theme}/${pageId}/comment`;
-  // Get the exercise ID
-  const foundData = taskData.find((data) => data.theme === theme);
-  const exercise = exerciseData.find(
-    (exercise) => exercise.id === foundData.exercise[pageId - 1]
-  );
-  
+  //
+  const { exercise } = findData(theme, pageId);
+
   if (!exercise) {
     return response.status(404).render("err.liquid");
   }
+
+  // Als de gebruiker required weghaalt & het bericht is emtpy
   if (message.length < 1) {
-    createError('Je bericht mag niet leeg zijn. Schrijf iets om te kunnen delen.', errorRedirect);
+    createError(
+      "Je bericht mag niet leeg zijn. Schrijf iets om te kunnen delen.",
+      errorRedirect
+    );
     return response.redirect(303, errorRedirect);
   }
+  // TODO: Als het bericht korter is dan x characters kan het niet verstuurd worden
+
   try {
-    const response = await fetch(
-      "https://fdnd-agsency.directus.app/items/dropandheal_messages",
+    const data = await fetch(
+      "https://fdnd-agency.directus.app/items/dropandheal_messages",
       {
         method: "POST",
         body: JSON.stringify({
           exercise: exercise.id,
           text: message,
           from: anonymous ? "anoniem" : person,
-
         }),
         headers: {
           "Content-Type": "application/json;charset=UTF-8",
         },
       }
     );
-    
-    // Controleer of de response OK is (status 200-299)
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+
+    // Controleer of de data response OK is (status 200-299)
+    if (!data.ok) {
+      // Hier kan ik zien welke error voorkwam op de foutieve data
+      throw new Error(data.status);
     }
 
-    response.redirect(303, `/${theme}/${pageId}/drops`);
+    // Als de gebruiker een bericht stuurt, wil ik deze in-faden
+    // Hier gebruik ik locals voor, en maak ik een custom variabele aan die ik later kan clearen
+    response.locals.newComment = ""
+
+    // Door naar drops
+    return response.redirect(303, `/${theme}/${pageId}/drops`);
   } catch (error) {
-    createError('Er is een fout opgetreden bij het versturen van je bericht. Probeer het nogmaals.', errorRedirect);
+    console.log(error);
+        
+    createError(
+      "Er is een fout opgetreden bij het versturen van je bericht. Probeer het nogmaals.",
+      errorRedirect
+    );
     return response.redirect(errorRedirect);
   }
 });
 
 app.get("/:theme/:pageId/drops", async function (request, response) {
+  console.log("chosen path", request.url);
+
   const { theme, pageId } = request.params;
-  const foundData = taskData.find((data) => data.theme === theme);
-  const exercise = exerciseData.find(
-    (exercise) => exercise.id === foundData.exercise[pageId - 1]
-  );
+  const { exercise } = findData(theme, pageId);
 
   if (!exercise) {
     return response.status(404).render("err.liquid");
@@ -241,4 +263,29 @@ app.set("port", process.env.PORT || 8000);
 
 app.listen(app.get("port"), function () {
   console.log(`Application started on http://localhost:${app.get("port")}`);
+});
+
+// Stuk AI suggestie voor het catchen van errors (production only)
+// Hiermee kan ik mijn error pagina renderen in het geval dat er een verkeerd pad opgevraagd wordt
+app.use((err, request, response, next) => {
+  
+  // Hiermee zorg ik ervoor dat er voor gebruikers een 404 weergeven wordt ipv de code-error
+  // Dit werkt alleen in de dev env omdat ik een .env heb met SHOW_DETAILED_ERRORS=true
+  if (process.env.SHOW_DETAILED_ERRORS === "true") {
+    // Weergeef alle error details
+    response.status(500).send({
+      error: err.message,
+      stack: err.stack,
+    });
+  } else {
+    // Redirect naar mijn error pagina
+    response.status(404).render("err.liquid", {error: "Er ging iets mis"});
+  }
+});
+
+// Catch all in het geval dat er iets mis gaat | Zelf zie ik niet precies in waarom deze nodig is
+app.use((request, response) => {
+  console.log("error hier");
+  
+  response.status(404).render("err.liquid", {error: "Fallback ding"});
 });
