@@ -94,6 +94,7 @@ app.get("/", async function (request, response) {
 
 // Dynamische parameter om te gebruiken bij het vinden van de correcte taskData
 app.get("/:theme", async function (request, response) {
+  
   // Custom lijst met alle task titles en pathNames
   const tasks = taskData.map((task) => ({
     title: task.title,
@@ -106,10 +107,6 @@ app.get("/:theme", async function (request, response) {
 
   // Zoek taskData dmv de gevraagde :theme
   const { foundData } = findData(requestedTheme);
-
-  if (!foundData) {
-    return response.status(404).render("err.liquid");
-  }
 
   // Destructureer om props makkelijk door te
   const { pathName, theme, title, id, exercise: exerciseList } = foundData;
@@ -130,15 +127,9 @@ app.get("/:theme", async function (request, response) {
 
 app.get("/:theme/:pageId", async function (request, response) {
   const { theme, pageId } = request.params;
-  console.log("chosen path", request.url);
 
   const { foundData, exercise } = findData(theme, pageId);
-
-  if (!exercise) {
-    return response.status(404).render("err.liquid");
-  }
   const { title, description, image, type } = exercise;
-
   const { theme: foundTheme, id } = foundData;
 
   response.render(`exercise.liquid`, {
@@ -156,9 +147,6 @@ app.get("/:theme/:pageId/comment", async function (request, response) {
 
   const { foundData, exercise } = findData(theme, pageId);
 
-  if (!exercise) {
-    return response.status(404).render("err.liquid");
-  }
   const { title, description, image, type } = exercise;
   const { theme: foundTheme, id } = foundData;
   const open = true;
@@ -189,10 +177,6 @@ app.post("/:theme/:pageId/drops", async function (request, response) {
   const errorRedirect = `/${theme}/${pageId}/comment`;
   //
   const { exercise } = findData(theme, pageId);
-
-  if (!exercise) {
-    return response.status(404).render("err.liquid");
-  }
 
   // Als de gebruiker required weghaalt & het bericht is emtpy
   if (message.length < 1) {
@@ -230,7 +214,7 @@ app.post("/:theme/:pageId/drops", async function (request, response) {
     // Hier gebruik ik locals voor, en maak ik een custom variabele aan die ik later kan clearen
     response.locals.newComment = ""
 
-    // Door naar drops
+    // Door naar drops als alles goed is verlopen
     return response.redirect(303, `/${theme}/${pageId}/drops`);
   } catch (error) {
     console.log(error);
@@ -249,9 +233,6 @@ app.get("/:theme/:pageId/drops", async function (request, response) {
   const { theme, pageId } = request.params;
   const { exercise } = findData(theme, pageId);
 
-  if (!exercise) {
-    return response.status(404).render("err.liquid");
-  }
   // Voer de fetch uit wanneer we de pagina bezoeken, deze staat hier met de aanname dat er vaak comments geplaatst worden
   const drops = await fetchExerciseDrops(exercise.id);
 
@@ -272,7 +253,7 @@ app.use((err, request, response, next) => {
   
   // Hiermee zorg ik ervoor dat er voor gebruikers een 404 weergeven wordt ipv de code-error
   // Dit werkt alleen in de dev env omdat ik een .env heb met SHOW_DETAILED_ERRORS=true
-  if (process.env.SHOW_DETAILED_ERRORS === "true") {
+  if (process.env.SHOW_DETAILED_ERRORS === "false") {
     // Weergeef alle error details
     response.status(500).send({
       error: err.message,
