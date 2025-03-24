@@ -228,8 +228,6 @@ app.post("/:theme/:pageId/drops", async function (request, response) {
 });
 
 app.get("/:theme/:pageId/drops", async function (request, response) {
-  console.log("chosen path", request.url);
-
   const { theme, pageId } = request.params;
   const { exercise } = findData(theme, pageId);
 
