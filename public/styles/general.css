@@ -26,28 +26,13 @@ body {
     padding: 0 4.875rem;
   }
   position: relative;
-  > .glow {
-    @media screen and (max-width: 960px) {
-      display: none;
-    }
-      top: -65%;
-      left: -700px;
-      position: absolute;
-      z-index: -1;
-      overflow: visible;
-      path,
-      g,
-      rect {
-        overflow: visible;
-      }
-    }
   background: var(--default-bg);
   * {
     color: var(--white);
   }
 }
 
-main{
+main {
   @media screen and (max-width: 960px) {
     padding: 0 1.5rem;
   }
@@ -146,16 +131,16 @@ li {
   }
 }
 
-.text-center{
+.text-center {
   text-align: center;
 }
 
-.error{
+.error {
   color: var(--error);
 }
 /* util classes end  */
 
-span{
+span {
   font-size: inherit;
   color: inherit;
   font-weight: inherit;

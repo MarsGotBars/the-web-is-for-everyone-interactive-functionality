@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/styles/component/btn/btn.css">
     <link rel="stylesheet" href="/styles/component/card/cards.css">
     <link rel="stylesheet" href="/styles/component/header/header.css">
+    <link rel="stylesheet" href="/styles/component/decor/decor.css">
     {% if open == true %}
         <link rel="stylesheet" href="/styles/component/dialog/dialog.css">
         <script src="/scripts/dialogFunctionality.js" defer></script>
@@ -16,5 +17,6 @@
 </head>
 <body data-theme="{{themeColor | default: blue}}">
 {% if id %}
-    {% render './partials/decor/Mesh-Grad-{{ id }}.liquid', classes: "glow"  %}
+    {% render './partials/decor/decor-container.liquid', id: id %}
+    {% comment %} {% render './partials/decor/Mesh-Grad-{{ id }}.liquid', classes: "glow"  %} {% endcomment %}
 {% endif %}
