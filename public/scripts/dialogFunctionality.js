@@ -4,7 +4,6 @@ if ("HTMLDialogElement" in window) {
   document.body.append(createdDialog);
   const dialog = document.querySelector("dialog");
   dialog.appendChild(form);
-  dialog.showModal();
 } else {
   console.log("Dialog is not supported");
 }
