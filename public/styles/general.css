@@ -27,7 +27,9 @@ body {
   }
   position: relative;
   background: var(--default-bg);
+  color: #f5f5f5;
   * {
+    color: #f5f5f5;
     color: var(--white);
   }
 }
