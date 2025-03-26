@@ -311,7 +311,10 @@ details[open] summary svg {
   transform: rotate(180deg);
 }
 
-.dropdown-container {
+/* .dropdown-container {
   ul {
   }
+} */
+details summary::-webkit-details-marker {
+  display: none;
 }
