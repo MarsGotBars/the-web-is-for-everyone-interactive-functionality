@@ -1,43 +1,44 @@
-<dialog>
-  <form action="{{link}}" method="post">
-    <input
-      type="hidden"
-      name="person"
-      value="Marcin">
-    <header>
+<form action="{{link}}" method="post">
+  <input
+    type="hidden"
+    name="person"
+    value="Marcin">
+  <header>
+    {% if open %}
       <p class="dialog-title">Toegevoegd aan {% render './partials/icons/drops.liquid' %} drops
       </p>
-      {% render './partials/btn/regular-btn.liquid'
-        , text: "X"
-        , strip: true
-        , classes: "close"
-        , link: taskLink %}
-    </header>
-    <div class="input-container"></div>
-    <label>
-      <input
-        type="text"
-        name="message"
-        required>
-    </label>
-    {% if error %}
-      <p class="error">{{ error }}</p>
     {% endif %}
-    <label>
-      <input
-        type="checkbox"
-        value="anoniem"
-        name="anonymous">
-      Bericht anoniem plaatsen</label>
-    <div class="submission-container">
-      {% render './partials/btn/regular-btn.liquid'
-        , classes: "ghost"
-        , saveIcon
-        , text: "Misschien later"
-        , link: taskLink %}
-      {% render './partials/btn/regular-btn.liquid'
-        , type: "submit"
-      %}
-    </div>
-  </form>
-</dialog>
+
+    {% render './partials/btn/regular-btn.liquid'
+      , text: "X"
+      , strip: true
+      , classes: "close"
+      , link: taskLink %}
+  </header>
+  <div class="input-container"></div>
+  <label>
+    <input
+      type="text"
+      name="message"
+      required>
+  </label>
+  {% if error %}
+    <p class="error">{{ error }}</p>
+  {% endif %}
+  <label>
+    <input
+      type="checkbox"
+      value="anoniem"
+      name="anonymous">
+    Bericht anoniem plaatsen</label>
+  <div class="submission-container">
+    {% render './partials/btn/regular-btn.liquid'
+      , classes: "ghost"
+      , saveIcon
+      , text: "Misschien later"
+      , link: taskLink %}
+    {% render './partials/btn/regular-btn.liquid'
+      , type: "submit"
+    %}
+  </div>
+</form>

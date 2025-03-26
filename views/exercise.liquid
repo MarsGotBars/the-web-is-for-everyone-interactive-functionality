@@ -14,12 +14,15 @@
   <p>titel van de opdracht:</p>
   <h1 class="xxl">{{ title }}</h1>
   {{ description }}
-  {% render './partials/dialog/comment-dialog.liquid'
-    , link: dropsLink
-    , taskLink: taskLink 
-    , error: error %}
+
   {% render './partials/btn/regular-btn.liquid'
     , text: "Klaar"
     , link: commentLink %}
+
+  {% render './partials/dialog/comment-dialog.liquid'
+    , link: dropsLink
+    , taskLink: taskLink 
+    , error: error
+    , open: open %}
 </main>
 {% render './partials/footer.liquid' %}
