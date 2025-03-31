@@ -17,12 +17,16 @@
 
   {% render './partials/btn/regular-btn.liquid'
     , text: "Klaar"
-    , link: commentLink %}
+    , link: commentLink
+    , classes: "opener"
+  %}
 
   {% render './partials/dialog/comment-dialog.liquid'
     , link: dropsLink
-    , taskLink: taskLink 
+    , closeLink: dropsLink 
     , error: error
-    , open: open %}
+    , open: open
+    , text: "Deel bericht"
+  %}
 </main>
 {% render './partials/footer.liquid' %}

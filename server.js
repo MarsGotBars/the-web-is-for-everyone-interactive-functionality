@@ -142,6 +142,23 @@ app.get("/:theme/:pageId", async function (request, response) {
   });
 });
 
+app.get("/:theme/:pageId/drops/comment", async function (request, response) {
+  const { theme, pageId } = request.params;
+  const { exercise } = findData(theme, pageId);
+
+  // Voer de fetch uit wanneer we de pagina bezoeken, deze staat hier met de aanname dat er vaak comments geplaatst worden
+  const drops = await fetchExerciseDrops(exercise.id);
+  const open = true;
+  console.log('testing! on comment route');
+  
+  response.render("drops.liquid", {
+    drops,
+    foundTheme: theme,
+    pageId,
+    open
+  });
+});
+
 app.get("/:theme/:pageId/comment", async function (request, response) {
   const { theme, pageId } = request.params;
 
@@ -173,8 +190,18 @@ app.get("/:theme/:pageId/comment", async function (request, response) {
 app.post("/:theme/:pageId/drops", async function (request, response) {
   const { theme, pageId } = request.params;
   const { person, message, anonymous } = request.body;
+  console.log(request.body.concept);
+  const referer = request.headers.referer || "";
+    const path = referer.startsWith("http://localhost:3000") 
+        ? referer.substring("http://localhost:3000".length) 
+        : referer; // Extract path
 
-  const errorRedirect = `/${theme}/${pageId}/comment`;
+    // console.log("Extracted path:", path);
+
+    let newPath = path.endsWith('/comment') ? path : path + '/comment';
+    // console.log(newPath, 'newpath');
+  
+  const errorRedirect = newPath;
   //
   const { exercise } = findData(theme, pageId);
 
@@ -190,7 +217,7 @@ app.post("/:theme/:pageId/drops", async function (request, response) {
 
   try {
     const data = await fetch(
-      "https://fdnd-agency.directus.app/items/dropandheal_messages",
+      "https://fdnd-agency.directus.app/items/drsopandheal_messages",
       {
         method: "POST",
         body: JSON.stringify({
@@ -217,7 +244,7 @@ app.post("/:theme/:pageId/drops", async function (request, response) {
     // Door naar drops als alles goed is verlopen
     return response.redirect(303, `/${theme}/${pageId}/drops`);
   } catch (error) {
-    console.log(error);
+    console.log(error, "mijn error");
         
     createError(
       "Er is een fout opgetreden bij het versturen van je bericht. Probeer het nogmaals.",
@@ -236,6 +263,8 @@ app.get("/:theme/:pageId/drops", async function (request, response) {
 
   response.render("drops.liquid", {
     drops,
+    foundTheme: theme,
+    pageId
   });
 });
 

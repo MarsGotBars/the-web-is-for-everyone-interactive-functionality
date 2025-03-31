@@ -1,4 +1,7 @@
-<form action="{{link}}" method="post">
+<form
+  action="{{link}}"
+  method="post"
+  class="dialog">
   <input
     type="hidden"
     name="person"
@@ -13,7 +16,7 @@
       , text: "X"
       , strip: true
       , classes: "close"
-      , link: taskLink %}
+      , link: closeLink %}
   </header>
   <div class="input-container"></div>
   <label>
@@ -32,13 +35,18 @@
       name="anonymous">
     Bericht anoniem plaatsen</label>
   <div class="submission-container">
-    {% render './partials/btn/regular-btn.liquid'
-      , classes: "ghost"
-      , saveIcon
-      , text: "Misschien later"
-      , link: taskLink %}
-    {% render './partials/btn/regular-btn.liquid'
-      , type: "submit"
-    %}
+    <button
+      class="regular-btn ghost"
+      name="concept"
+      value="true">
+      <img
+        src="/assets/icons/save.svg"
+        alt="save icon"
+        class="saveIcon">
+      Misschien later</button>
+    <button
+      class="regular-btn"
+      name="concept"
+      value="false">{{ text }}</button>
   </div>
 </form>

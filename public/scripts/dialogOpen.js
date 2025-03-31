@@ -1,2 +1,4 @@
-const dialog = document.querySelector("dialog");
-dialog.showModal();
+if ("HTMLDialogElement" in window) {
+  const dialog = document.querySelector("dialog");
+  dialog.showModal();
+}

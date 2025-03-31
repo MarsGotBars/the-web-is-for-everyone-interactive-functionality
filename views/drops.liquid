@@ -1,6 +1,27 @@
-{% render './partials/head.liquid' %}
-{% for drop in drops %}
+{% assign taskLink = "/" | append: foundTheme %}
+{% assign partialLink = taskLink | append: "/" | append: pageId %}
+{% assign dropsLink = partialLink | append: "/drops" %}
+{% assign commentLink = dropsLink | append: "/comment" %}
+
+{% render './partials/head.liquid'
+  , open: open
+  , themeColor: foundTheme %}
+{% for drop in drops reversed %}
   {% render "./partials/card/drop-card.liquid"
     , drop: drop %}
 {% endfor %}
+
+<form action="{{commentLink}}">
+  {% render './partials/btn/regular-btn.liquid'
+    , text: "Klaar"
+    , classes: "opener"
+    , link: commentLink
+  %}
+</form>
+{% render './partials/dialog/comment-dialog.liquid'
+  , link: dropsLink
+  , closeLink: dropsLink 
+  , error: error
+  , open: open
+  , text: "Plaats bericht" %}
 {% render './partials/footer.liquid' %}
