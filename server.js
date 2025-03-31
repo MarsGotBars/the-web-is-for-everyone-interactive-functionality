@@ -325,7 +325,6 @@ app.post("/:theme/:pageId/drops", async function (request, response) {
   }
 });
 
-
 app.post("/clean", async function (request, response) {
   try {
     // Get all concept messages for the user
