@@ -71,3 +71,7 @@ body[data-theme= "purple"]{
     --theme: var(--purple);
 }
 
+*:focus{
+    outline: 5px dotted var(--theme);
+}
+
