@@ -121,8 +121,14 @@ body > header {
 }
 /* progress bar */
 progress {
-  padding: 0 0.5rem;
+  margin: 0 0.5rem;
   width: 226px;
+  border: none;
+  background: var(--black);
+
+  @media screen and (max-width: 960px) {
+    background: var(--off-black);
+  }
   @media (min-width: 768px) {
     width: 100%;
   }
@@ -141,6 +147,11 @@ progress {
   }
   /* de progress zelf */
   &::-webkit-progress-value {
+    background: var(--theme);
+    transition: width 0.3s ease;
+  }
+  /* firefox */
+  &::-moz-progress-bar {
     background: var(--theme);
     transition: width 0.3s ease;
   }
