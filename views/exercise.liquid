@@ -10,7 +10,7 @@
   <img
     src="https://fdnd-agency.directus.app/assets/{{ image }}"
     alt=""
-    loading="eager">
+    loading="eager" class="exercise-image">
   <p>titel van de opdracht:</p>
   <h1 class="xxl">{{ title }}</h1>
   {{ description }}
@@ -23,10 +23,12 @@
 
   {% render './partials/dialog/comment-dialog.liquid'
     , link: dropsLink
-    , closeLink: dropsLink 
+    , closeLink: partialLink 
     , error: error
     , open: open
     , text: "Deel bericht"
+    , conceptText: conceptText
+    , isExercise: isExercise
   %}
 </main>
 {% render './partials/footer.liquid' %}

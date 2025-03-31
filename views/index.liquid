@@ -20,8 +20,11 @@
     , saveIcon: false %}
   {% render './partials/btn/regular-btn.liquid'
     , text: "Linkje"
-    , link: "/blue"
+    , link: "/clean"
     , classes: ""
     , saveIcon: false %}
+    <form action="/clean" method="POST">
+  <button type="submit">Clean Concepts</button>
+</form>
 </main>
 {% render './partials/footer.liquid' %}
