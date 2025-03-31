@@ -40,6 +40,15 @@ const fetchExerciseDrops = async (givenExercise) => {
   return messageListJson;
 };
 
+const fetchExerciseConcept = async (exerciseId, user) => {
+  const userConceptJSON = await fetch(
+    `https://fdnd-agency.directus.app/items/dropandheal_messages?filter[exercise][_eq]=${exerciseId}&filter[from][_eq]=${user}&filter[concept][_eq]=true&sort=-date_created&limit=1`
+  );
+  const {data: userConcept } = await userConceptJSON.json();
+  // return het meest recente concept (kunnen er niet meer zijn dan 1)
+  return userConcept[0];
+};
+
 const findData = (theme, pageId) => {
   const foundData = taskData.find((data) => data.theme === theme);
 
