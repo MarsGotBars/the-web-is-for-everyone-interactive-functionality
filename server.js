@@ -5,6 +5,8 @@ import 'dotenv/config'
 // Init de app
 const app = express();
 
+const loggedUser = "Marcin"
+
 let taskData = [];
 let exerciseData = [];
 const fetchThemedTask = async () => {
@@ -29,13 +31,22 @@ const fetchThemedExercise = async () => {
 const fetchExerciseDrops = async (givenExercise) => {
   const messageList = await fetch(
     `https://fdnd-agency.directus.app/items/dropandheal_messages${
-      givenExercise && `?filter[exercise][_eq]=${givenExercise}`
+      givenExercise && `?filter[exercise][_eq]=${givenExercise}&filter[concept][_eq]=false`
     }`
   );
   // Skip hiermee het benoemen van 'data'
   const { data: messageListJson } = await messageList.json();
   // Refresh de data voor de check
   return messageListJson;
+};
+
+const fetchExerciseConcept = async (exerciseId, user) => {
+  const userConceptJSON = await fetch(
+    `https://fdnd-agency.directus.app/items/dropandheal_messages?filter[exercise][_eq]=${exerciseId}&filter[from][_eq]=${user}&filter[concept][_eq]=true&sort=-date_created&limit=1`
+  );
+  const {data: userConcept } = await userConceptJSON.json();
+  // return het meest recente concept (kunnen er niet meer zijn dan 1)
+  return userConcept[0];
 };
 
 const findData = (theme, pageId) => {
@@ -127,10 +138,13 @@ app.get("/:theme", async function (request, response) {
 
 app.get("/:theme/:pageId", async function (request, response) {
   const { theme, pageId } = request.params;
-
   const { foundData, exercise } = findData(theme, pageId);
-  const { title, description, image, type } = exercise;
+  const { title, description, image, id: exerciseId } = exercise;
   const { theme: foundTheme, id } = foundData;
+  const isExercise = true;
+
+  const foundConcept = await fetchExerciseConcept(exerciseId, loggedUser);
+  const conceptText = foundConcept ? foundConcept.text : '';
 
   response.render(`exercise.liquid`, {
     foundTheme,
@@ -139,17 +153,20 @@ app.get("/:theme/:pageId", async function (request, response) {
     id,
     pageId,
     image,
+    conceptText,
+    isExercise
   });
 });
 
 app.get("/:theme/:pageId/comment", async function (request, response) {
   const { theme, pageId } = request.params;
-
   const { foundData, exercise } = findData(theme, pageId);
-
   const { title, description, image, type } = exercise;
   const { theme: foundTheme, id } = foundData;
+  const foundConcept = await fetchExerciseConcept(exercise.id, loggedUser);
+  const conceptText = foundConcept ? foundConcept.text : '';
   const open = true;
+  const isExercise = true;
 
   // alle props die we willen meegeven aan de template
   const renderData = {
@@ -160,6 +177,8 @@ app.get("/:theme/:pageId/comment", async function (request, response) {
     image,
     pageId,
     open,
+    conceptText,
+    isExercise
   };
 
   // Als res.locals.error bestaat, gebruik die (komt van middleware)
@@ -170,24 +189,105 @@ app.get("/:theme/:pageId/comment", async function (request, response) {
   response.render(`exercise.liquid`, renderData);
 });
 
+app.get("/:theme/:pageId/drops", async function (request, response) {
+  const { theme, pageId } = request.params;
+  const { exercise } = findData(theme, pageId);
+  const foundConcept = await fetchExerciseConcept(exercise.id, loggedUser);
+  const conceptText = foundConcept ? foundConcept.text : '';
+  // Voer de fetch uit wanneer we de pagina bezoeken, deze staat hier met de aanname dat er vaak comments geplaatst worden
+  const drops = await fetchExerciseDrops(exercise.id);
+  console.log('conceptText', conceptText);
+  
+  response.render("drops.liquid", {
+    drops,
+    foundTheme: theme,
+    pageId,
+    conceptText
+  });
+});
+
+app.get("/:theme/:pageId/drops/comment", async function (request, response) {
+  const { theme, pageId } = request.params;
+  const { exercise } = findData(theme, pageId);
+  const foundConcept = await fetchExerciseConcept(exercise.id, loggedUser);
+  const conceptText = foundConcept ? foundConcept.text : '';
+  // Voer de fetch uit wanneer we de pagina bezoeken, deze staat hier met de aanname dat er vaak comments geplaatst worden
+  const drops = await fetchExerciseDrops(exercise.id);
+  const open = true;
+  console.log('testing! on comment route');
+  
+  response.render("drops.liquid", {
+    drops,
+    foundTheme: theme,
+    pageId,
+    open,
+    conceptText
+  });
+});
+
 app.post("/:theme/:pageId/drops", async function (request, response) {
   const { theme, pageId } = request.params;
-  const { person, message, anonymous } = request.body;
+  const { person, message, anonymous, concept } = request.body;
 
-  const errorRedirect = `/${theme}/${pageId}/comment`;
-  //
+  // Default fallback path
+  let errorRedirect = `/${theme}/${pageId}/comment`;
+  
+  // Pas redirect aan in het geval van geen client side code
+  try {
+    const referer = request.headers.referer || "";
+    const path = new URL(referer).pathname;
+    const cleanPath = path.endsWith('/') ? path.slice(0, -1) : path;
+    
+    // In het geval dat referer werkt, gebruik deze path
+    errorRedirect = cleanPath.endsWith('/comment') 
+      ? cleanPath 
+      : `${cleanPath}/comment`;
+  } catch (e) {
+    console.log('Using fallback redirect path');
+  }
+  
   const { exercise } = findData(theme, pageId);
 
   // Als de gebruiker required weghaalt & het bericht is emtpy
   if (message.length < 1) {
-    createError(
-      "Je bericht mag niet leeg zijn. Schrijf iets om te kunnen delen.",
-      errorRedirect
-    );
+    createError('Je bericht mag niet leeg zijn. Schrijf iets om te kunnen delen.', errorRedirect);
     return response.redirect(303, errorRedirect);
   }
-  // TODO: Als het bericht korter is dan x characters kan het niet verstuurd worden
+  const foundConcept = await fetchExerciseConcept(exercise.id, loggedUser);
 
+  if(foundConcept) {
+    try {
+      // Met een patch passen we het concept bericht aan
+      const patchResponse = await fetch(
+        `https://fdnd-agency.directus.app/items/dropandheal_messages/${foundConcept.id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            text: message,
+            from: (anonymous && concept !== "true") ? "anoniem" : person,
+            date_created: new Date().toISOString(),
+            concept: concept
+          })
+        }
+      );
+      
+      if (!patchResponse.ok) {
+        throw new Error(patchResponse.status);
+      }
+      // Als het concept false is, ga naar de drops pagina
+      if(concept !== 'true'	) {
+        return response.redirect(303, `/${theme}/${pageId}/drops`);
+      }
+      // Als het concept true is, ga naar de home pagina
+      return response.redirect(303, `/${theme}`);
+    } catch (error) {
+      createError('Er is een fout opgetreden bij het versturen/updaten van je bericht. Probeer het nogmaals.', errorRedirect);
+      return response.redirect(errorRedirect);
+    }
+  }
   try {
     const data = await fetch(
       "https://fdnd-agency.directus.app/items/dropandheal_messages",
@@ -196,7 +296,10 @@ app.post("/:theme/:pageId/drops", async function (request, response) {
         body: JSON.stringify({
           exercise: exercise.id,
           text: message,
-          from: anonymous ? "anoniem" : person,
+          // Als concept true is, gebruik de persoon die is ingelogd, als concept false is, kiest de gebruiker zelf
+          // concept is een string value, dus we moeten deze checken met !== "true"
+          from: (anonymous && concept !== "true") ? "anoniem" : person,
+          concept: concept,
         }),
         headers: {
           "Content-Type": "application/json;charset=UTF-8",
@@ -217,26 +320,42 @@ app.post("/:theme/:pageId/drops", async function (request, response) {
     // Door naar drops als alles goed is verlopen
     return response.redirect(303, `/${theme}/${pageId}/drops`);
   } catch (error) {
-    console.log(error);
-        
-    createError(
-      "Er is een fout opgetreden bij het versturen van je bericht. Probeer het nogmaals.",
-      errorRedirect
-    );
+    createError('Er is een fout opgetreden bij het versturen van je bericht. Probeer het nogmaals.', errorRedirect);
     return response.redirect(errorRedirect);
   }
 });
 
-app.get("/:theme/:pageId/drops", async function (request, response) {
-  const { theme, pageId } = request.params;
-  const { exercise } = findData(theme, pageId);
 
-  // Voer de fetch uit wanneer we de pagina bezoeken, deze staat hier met de aanname dat er vaak comments geplaatst worden
-  const drops = await fetchExerciseDrops(exercise.id);
-
-  response.render("drops.liquid", {
-    drops,
-  });
+app.post("/clean", async function (request, response) {
+  try {
+    // Get all concept messages for the user
+    const messageList = await fetch(
+      `https://fdnd-agency.directus.app/items/dropandheal_messages?filter[exercise][_eq]=5&filter[from][_eq]=Marcin&filter[concept][_eq]=true`
+    );
+    const { data } = await messageList.json();
+    
+    // Delete each message
+    for (const message of data) {
+      const deleteResponse = await fetch(
+        `https://fdnd-agency.directus.app/items/dropandheal_messages/${message.id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      if (!deleteResponse.ok) {
+        throw new Error(`Failed to delete message ${message.id}`);
+      }
+    }
+    
+    response.redirect(303, "/");
+  } catch (error) {
+    console.error('Error cleaning messages:', error);
+    response.status(500).json({ error: 'Failed to clean messages' });
+  }
 });
 
 app.set("port", process.env.PORT || 8000);
@@ -251,7 +370,7 @@ app.use((err, request, response, next) => {
   
   // Hiermee zorg ik ervoor dat er voor gebruikers een 404 weergeven wordt ipv de code-error
   // Dit werkt alleen in de dev env omdat ik een .env heb met SHOW_DETAILED_ERRORS=true
-  if (process.env.SHOW_DETAILED_ERRORS === "false") {
+  if (process.env.SHOW_DETAILED_ERRORS === "true") {
     // Weergeef alle error details
     response.status(500).send({
       error: err.message,

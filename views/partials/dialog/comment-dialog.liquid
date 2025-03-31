@@ -1,10 +1,13 @@
-<form action="{{link}}" method="post">
+<form
+  action="{{link}}"
+  method="post"
+  class="dialog">
   <input
     type="hidden"
     name="person"
     value="Marcin">
   <header>
-    {% if open %}
+    {% if open == true or isExercise == true %}
       <p class="dialog-title">Toegevoegd aan {% render './partials/icons/drops.liquid' %} drops
       </p>
     {% endif %}
@@ -13,14 +16,20 @@
       , text: "X"
       , strip: true
       , classes: "close"
-      , link: taskLink %}
+      , link: closeLink %}
   </header>
-  <div class="input-container"></div>
+
+  <h2 class="extra-bold sm font-calvino">Je hebt zojuist een mooie stap volbracht.</h2>
   <label>
-    <input
-      type="text"
+    Wil je anderen steunen door je gevoelens 
+    over deze oefening te delen? 
+    
+    <textarea
       name="message"
-      required>
+      required>{{conceptText}}</textarea>
+    {% if conceptText %}
+      <p class="concept-text">Je voorheen ingevulde concept bericht is automatisch ingevuld.</p>
+    {% endif %}
   </label>
   {% if error %}
     <p class="error">{{ error }}</p>
@@ -28,17 +37,24 @@
   <label>
     <input
       type="checkbox"
-      value="anoniem"
-      name="anonymous">
+      value="true"
+      name="anonymous"
+      class="anon">
+    <div class="fake-checkbox">{% render './partials/icons/checkmark.liquid' %}</div>
     Bericht anoniem plaatsen</label>
   <div class="submission-container">
-    {% render './partials/btn/regular-btn.liquid'
-      , classes: "ghost"
-      , saveIcon
-      , text: "Misschien later"
-      , link: taskLink %}
-    {% render './partials/btn/regular-btn.liquid'
-      , type: "submit"
-    %}
+    <button
+      class="regular-btn ghost"
+      name="concept"
+      value="true">
+      <img
+        src="/assets/icons/save.svg"
+        alt="save icon"
+        class="saveIcon">
+      Misschien later</button>
+    <button
+      class="regular-btn"
+      name="concept"
+      value="false">{{ text }}</button>
   </div>
 </form>

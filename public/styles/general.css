@@ -160,3 +160,7 @@ img {
   aspect-ratio: 1;
   border-radius: 0.75rem;
 }
+
+.exercise-image{
+  max-height: 33vh;
+}
