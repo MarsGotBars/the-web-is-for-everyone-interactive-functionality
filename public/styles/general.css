@@ -18,7 +18,7 @@
 /* height instellen */
 html,
 body {
-  height: 100%;
+  min-height: 100%;
 }
 /* default bg en color op default color op alle tekst */
 body {
@@ -164,3 +164,17 @@ img {
 .exercise-image{
   max-height: 33vh;
 }
+
+.drop-container {
+  position: fixed;
+  bottom: 2rem;
+  left: 0;
+  width: 100%;
+  padding: 0 4.875rem;
+  display: none;
+}
+
+.drop-container .regular-btn {
+  justify-content: center;
+}
+
