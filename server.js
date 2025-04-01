@@ -145,16 +145,23 @@ app.get("/:theme/:pageId", async function (request, response) {
 
   const foundConcept = await fetchExerciseConcept(exerciseId, loggedUser);
   const conceptText = foundConcept ? foundConcept.text : '';
+  let conceptId;
+  if(foundConcept) {
+    conceptId = foundConcept.id;
+  }
+
 
   response.render(`exercise.liquid`, {
     foundTheme,
     title,
     description,
     id,
-    pageId,
+    exerciseId: exercise.id,
     image,
     conceptText,
-    isExercise
+    conceptId,
+    isExercise,
+    pageId
   });
 });
 
@@ -167,7 +174,10 @@ app.get("/:theme/:pageId/comment", async function (request, response) {
   const conceptText = foundConcept ? foundConcept.text : '';
   const open = true;
   const isExercise = true;
-
+  let conceptId;
+  if(foundConcept) {
+    conceptId = foundConcept.id;
+  }
   // alle props die we willen meegeven aan de template
   const renderData = {
     foundTheme,
@@ -175,10 +185,12 @@ app.get("/:theme/:pageId/comment", async function (request, response) {
     description,
     id,
     image,
-    pageId,
+    exerciseId: exercise.id,
     open,
     conceptText,
-    isExercise
+    conceptId,
+    isExercise,
+    pageId
   };
 
   // Als res.locals.error bestaat, gebruik die (komt van middleware)
@@ -196,13 +208,20 @@ app.get("/:theme/:pageId/drops", async function (request, response) {
   const conceptText = foundConcept ? foundConcept.text : '';
   // Voer de fetch uit wanneer we de pagina bezoeken, deze staat hier met de aanname dat er vaak comments geplaatst worden
   const drops = await fetchExerciseDrops(exercise.id);
-  console.log('conceptText', conceptText);
+  let conceptId;
+  console.log(foundConcept);  
+  if(foundConcept) {
+    conceptId = foundConcept.id;
+  }
   
   response.render("drops.liquid", {
     drops,
     foundTheme: theme,
     pageId,
-    conceptText
+    conceptText,
+    conceptId,
+    exerciseId: exercise.id,
+    pageId
   });
 });
 
@@ -214,14 +233,19 @@ app.get("/:theme/:pageId/drops/comment", async function (request, response) {
   // Voer de fetch uit wanneer we de pagina bezoeken, deze staat hier met de aanname dat er vaak comments geplaatst worden
   const drops = await fetchExerciseDrops(exercise.id);
   const open = true;
-  console.log('testing! on comment route');
+  let conceptId;
+  if(foundConcept) {
+    conceptId = foundConcept.id;
+  }
   
   response.render("drops.liquid", {
     drops,
     foundTheme: theme,
-    pageId,
+    exerciseId: exercise.id,
     open,
-    conceptText
+    conceptText,
+    conceptId,
+    pageId
   });
 });
 
