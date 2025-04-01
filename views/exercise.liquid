@@ -2,6 +2,7 @@
 {% assign partialLink = taskLink | append: "/" | append: pageId %}
 {% assign dropsLink = partialLink | append: "/drops" %}
 {% assign commentLink = partialLink | append: "/comment" %}
+
 {% render './partials/head.liquid'
   , themeColor: foundTheme
   , id: id
@@ -27,7 +28,9 @@
     , open: open
     , text: "Deel bericht"
     , conceptText: conceptText
+    , conceptId: conceptId
     , isExercise: isExercise
+    , exerciseId: exerciseId
   %}
 </main>
 {% render './partials/footer.liquid' %}
