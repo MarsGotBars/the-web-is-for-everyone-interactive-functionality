@@ -23,6 +23,9 @@
     {% endif %}
     {% if type %}
     type="{{type}}"
+    {% endif %}
+    {% if formmethod %}
+    formmethod="{{formmethod}}"
     {% endif %}>
     {% if classes contains "ghost" and saveIcon == true %}
       <img
