@@ -1,11 +1,11 @@
 <form
   action="{{link}}"
   method="post"
-  class="dialog">
+  class="dialog"
+  data-exercise="{% if isExercise %}true{% else %}false{% endif %}">
   <input
   type="hidden"
   name="person"
-  data-exercise="{% if isExercise %}true{% else %}false{% endif %}"
   value="Marcin">
   {% if conceptId %}
   <input
