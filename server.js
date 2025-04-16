@@ -20,7 +20,7 @@ const fetchThemedTask = async () => {
 
 const fetchThemedExercise = async () => {
   const exerciseList = await fetch(
-    "https://fdnd-agency.directus.app/items/dropandheal_exercise"
+    "https://fdnd-agency.directus.app/items/dropandheal_exercise?fields=*,image.width,image.height,image.id"
   );
   // Skip hiermee het benoemen van 'data'
   const { data: exerciseListJson } = await exerciseList.json();
@@ -122,10 +122,13 @@ app.get("/:theme", async function (request, response) {
   // Destructureer om props makkelijk door te
   const { pathName, theme, title, id, exercise: exerciseList } = foundData;
 
-  const exercises = exerciseList.map((exercise) => {
-    return exerciseData.find((e) => e.id === exercise);
+  const exercises = exerciseList.map(async (exerciseId, i) => {
+    const givenExercise = exerciseData.find((e) => e.id === exerciseId);
+  
+    return givenExercise
   });
-
+  
+  
   // respond met de gevraagde pagina & het behorende thema
   response.render(`task.liquid`, {
     theme,
@@ -145,23 +148,16 @@ app.get("/:theme/:pageId", async function (request, response) {
 
   const foundConcept = await fetchExerciseConcept(exerciseId, loggedUser);
   const conceptText = foundConcept ? foundConcept.text : '';
-  let conceptId;
-  if(foundConcept) {
-    conceptId = foundConcept.id;
-  }
-
 
   response.render(`exercise.liquid`, {
     foundTheme,
     title,
     description,
     id,
-    exerciseId: exercise.id,
+    pageId,
     image,
     conceptText,
-    conceptId,
-    isExercise,
-    pageId
+    isExercise
   });
 });
 
@@ -174,10 +170,7 @@ app.get("/:theme/:pageId/comment", async function (request, response) {
   const conceptText = foundConcept ? foundConcept.text : '';
   const open = true;
   const isExercise = true;
-  let conceptId;
-  if(foundConcept) {
-    conceptId = foundConcept.id;
-  }
+
   // alle props die we willen meegeven aan de template
   const renderData = {
     foundTheme,
@@ -185,12 +178,10 @@ app.get("/:theme/:pageId/comment", async function (request, response) {
     description,
     id,
     image,
-    exerciseId: exercise.id,
+    pageId,
     open,
     conceptText,
-    conceptId,
-    isExercise,
-    pageId
+    isExercise
   };
 
   // Als res.locals.error bestaat, gebruik die (komt van middleware)
@@ -208,20 +199,13 @@ app.get("/:theme/:pageId/drops", async function (request, response) {
   const conceptText = foundConcept ? foundConcept.text : '';
   // Voer de fetch uit wanneer we de pagina bezoeken, deze staat hier met de aanname dat er vaak comments geplaatst worden
   const drops = await fetchExerciseDrops(exercise.id);
-  let conceptId;
-  console.log(foundConcept);  
-  if(foundConcept) {
-    conceptId = foundConcept.id;
-  }
+  console.log('conceptText', conceptText);
   
   response.render("drops.liquid", {
     drops,
     foundTheme: theme,
     pageId,
-    conceptText,
-    conceptId,
-    exerciseId: exercise.id,
-    pageId
+    conceptText
   });
 });
 
@@ -233,19 +217,14 @@ app.get("/:theme/:pageId/drops/comment", async function (request, response) {
   // Voer de fetch uit wanneer we de pagina bezoeken, deze staat hier met de aanname dat er vaak comments geplaatst worden
   const drops = await fetchExerciseDrops(exercise.id);
   const open = true;
-  let conceptId;
-  if(foundConcept) {
-    conceptId = foundConcept.id;
-  }
+  console.log('testing! on comment route');
   
   response.render("drops.liquid", {
     drops,
     foundTheme: theme,
-    exerciseId: exercise.id,
+    pageId,
     open,
-    conceptText,
-    conceptId,
-    pageId
+    conceptText
   });
 });
 
@@ -348,6 +327,7 @@ app.post("/:theme/:pageId/drops", async function (request, response) {
     return response.redirect(errorRedirect);
   }
 });
+
 
 app.post("/clean", async function (request, response) {
   try {
